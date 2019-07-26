@@ -84,6 +84,12 @@ window.addEventListener('message', function (event) {
 	}
 });
 
+window.addEventListener('keyup', function (e) {
+	if (e.keyCode == 27) {
+		$(".btnKick").click();
+	}
+});
+
 // Handle Button Presses
 $(".btnQuestion").click(function () {
 	$.post('http://esx_dmvschool/question', JSON.stringify({}));
