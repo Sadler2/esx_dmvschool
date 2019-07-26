@@ -1,5 +1,9 @@
 # esx_dmvschool
 Realistic DMV school for ESX
+# DRAFT fork from [original esx_dmvschool](https://github.com/ESX-Org/esx_dmvschool), use at your own risk!
+
+## Fork Extra Features
+- Config.Locale-dependent UI localization. You don't need to replace any files or modify the resource file to change the language of this script.
 
 ## Requirements
 - [esx_license](https://github.com/ESX-Org/esx_license)

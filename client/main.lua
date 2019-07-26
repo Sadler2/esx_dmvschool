@@ -31,6 +31,10 @@ Citizen.CreateThread(function()
 		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 		Citizen.Wait(0)
 	end
+
+	SendNUIMessage({
+		Locale = Config.Locale
+	})
 end)
 
 function DrawMissionText(msg, time)
@@ -107,6 +111,8 @@ CurrentZoneType = type
 end
 
 function OpenDMVSchoolMenu()
+
+
 	local ownedLicenses = {}
 
 	for i=1, #Licenses, 1 do

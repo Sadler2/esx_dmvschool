@@ -31,11 +31,20 @@ client_scripts {
 ui_page 'html/ui.html'
 
 files {
+	'html/ui_fi.html',
+	'html/ui_sv.html',
+	'html/ui_pl.html',
+	'html/ui_fr.html',
+	'html/ui_en.html',
 	'html/ui.html',
 	'html/logo.png',
 	'html/dmv.png',
 	'html/styles.css',
-	'html/questions.js',
+	'html/questions_sv.js',
+	'html/questions_pl.js',
+	'html/questions_fr.js',
+	'html/questions_fi.js',
+	'html/questions_en.js',
 	'html/scripts.js',
 	'html/debounce.min.js'
 }
