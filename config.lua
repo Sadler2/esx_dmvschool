@@ -153,6 +153,13 @@ Config.CheckPoints = {
 	},
 
 	{
+		Pos = {x = 283.16, y = -2672.9, z = 17.9},
+		Action = function(playerPed, vehicle, setCurrentZoneType)
+			DrawMissionText(_U('go_next_point'), 5000)
+		end
+	},
+
+	{
 		Pos = {x = 1225.759, y = -1948.792, z = 38.718},
 		Action = function(playerPed, vehicle, setCurrentZoneType)
 			DrawMissionText(_U('go_next_point'), 5000)

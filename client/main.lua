@@ -25,6 +25,7 @@ local CurrentZoneType   = nil
 local DriveErrors       = 0
 local IsAboveSpeedLimit = false
 local LastVehicleHealth = nil
+local MaxCheckpointDistance = 4000
 
 Citizen.CreateThread(function()
 	while ESX == nil do
@@ -86,6 +87,7 @@ function StartDriveTest(type)
 		IsAboveSpeedLimit = false
 		CurrentVehicle    = vehicle
 		LastVehicleHealth = GetEntityHealth(vehicle)
+		MaxCheckpointDistance = 4000
 
 		local playerPed   = PlayerPedId()
 		TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
@@ -111,8 +113,6 @@ CurrentZoneType = type
 end
 
 function OpenDMVSchoolMenu()
-
-
 	local ownedLicenses = {}
 
 	for i=1, #Licenses, 1 do
@@ -337,22 +337,36 @@ Citizen.CreateThread(function()
 					StopDriveTest(false)
 				end
 			else
+				local distance = GetDistanceBetweenCoords(coords, Config.CheckPoints[nextCheckPoint].Pos.x, Config.CheckPoints[nextCheckPoint].Pos.y, Config.CheckPoints[nextCheckPoint].Pos.z, true)
 
 				if CurrentCheckPoint ~= LastCheckPoint then
 					if DoesBlipExist(CurrentBlip) then
 						RemoveBlip(CurrentBlip)
 					end
 
+					local checkPos = Config.CheckPoints[nextCheckPoint].Pos
 					CurrentBlip = AddBlipForCoord(Config.CheckPoints[nextCheckPoint].Pos.x, Config.CheckPoints[nextCheckPoint].Pos.y, Config.CheckPoints[nextCheckPoint].Pos.z)
 					SetBlipRoute(CurrentBlip, 1)
+
+					MaxCheckpointDistance = distance * 3
+
+					if MaxCheckpointDistance < 1000 then
+						MaxCheckpointDistance = 1000
+					end
 
 					LastCheckPoint = CurrentCheckPoint
 				end
 
-				local distance = GetDistanceBetweenCoords(coords, Config.CheckPoints[nextCheckPoint].Pos.x, Config.CheckPoints[nextCheckPoint].Pos.y, Config.CheckPoints[nextCheckPoint].Pos.z, true)
-
 				if distance <= 100.0 then
 					DrawMarker(1, Config.CheckPoints[nextCheckPoint].Pos.x, Config.CheckPoints[nextCheckPoint].Pos.y, Config.CheckPoints[nextCheckPoint].Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 1.5, 1.5, 1.5, 102, 204, 102, 100, false, true, 2, false, false, false, false)
+				end
+
+				if GetPedInVehicleSeat(CurrentVehicle, -1) ~= playerPed or DriveErrors >= Config.MaxErrors or distance > MaxCheckpointDistance then
+					if DoesBlipExist(CurrentBlip) then
+						RemoveBlip(CurrentBlip)
+					end
+
+					StopDriveTest(false)
 				end
 
 				if distance <= 3.0 then
@@ -369,6 +383,9 @@ end)
 
 -- Speed / Damage control
 Citizen.CreateThread(function()
+	local againstTrafficTimer = 0
+	local onPavementTimer = 0
+
 	while true do
 		Citizen.Wait(10)
 
@@ -392,6 +409,7 @@ Citizen.CreateThread(function()
 
 							ESX.ShowNotification(_U('driving_too_fast', v))
 							ESX.ShowNotification(_U('errors', DriveErrors, Config.MaxErrors))
+							Citizen.Wait(100)
 						end
 					end
 				end
@@ -411,6 +429,40 @@ Citizen.CreateThread(function()
 					-- avoid stacking faults
 					LastVehicleHealth = health
 					Citizen.Wait(1500)
+				end
+
+				local speed = GetEntitySpeed(vehicle)*3.6
+
+				if speed > 20 and (CurrentZoneType == 'town' or CurrentZoneType == 'freeway') then
+					if GetTimeSincePlayerDroveAgainstTraffic(PlayerId()) < 100 then
+						againstTrafficTimer = againstTrafficTimer + 100
+						Citizen.Wait(100)
+					else
+						againstTrafficTimer = 0
+					end
+
+					if GetTimeSincePlayerDroveOnPavement(PlayerId()) < 100 then
+						onPavementTimer = onPavementTimer + 100
+						Citizen.Wait(100)
+					else
+						onPavementTimer = 0
+					end
+
+					if onPavementTimer > 1000 then
+						DriveErrors = DriveErrors + 1
+
+						ESX.ShowNotification(_U('pavement_driving'))
+						ESX.ShowNotification(_U('errors', DriveErrors, Config.MaxErrors))
+
+						onPavementTimer = 0
+					elseif againstTrafficTimer > 1000 then
+						DriveErrors = DriveErrors + 1
+
+						ESX.ShowNotification(_U('driving_against_traffic'))
+						ESX.ShowNotification(_U('errors', DriveErrors, Config.MaxErrors))
+
+						againstTrafficTimer = 0
+					end
 				end
 			end
 		else
